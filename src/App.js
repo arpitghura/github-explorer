@@ -1,9 +1,10 @@
 import "./App.css";
+import Repos from "./comps/Repos";
 
 function App() {
   return (
     <div className="App">
-      <h1>Kofuko Idea Lab Interview</h1>
+      <Repos />
     </div>
   );
 }

@@ -11,8 +11,8 @@ const Repos = () => {
     bio: "",
   });
 
-  const [userReps, setUserReps] = useState([]);
-
+  const [userRepo, setUserRepo] = useState([]);
+  const [apiError, setApiError] = useState("");
   const [bookmarks, setBookmarks] = useState([]);
 
   const handleSearchUsername = (e) => {
@@ -28,9 +28,13 @@ const Repos = () => {
       try {
         const res = await fetch(searchURI);
         const data = await res.json();
+        if (data.message) {
+          throw data.message;
+        }
         SetSimilarUsers(data.items);
-      } catch {
-        console.log("Error Occured");
+      } catch (error) {
+        console.log("Error Occured:", error);
+        setApiError(error);
       }
     };
     searchUserByUsername();
@@ -44,26 +48,37 @@ const Repos = () => {
     const fetchUserData = async () => {
       const uri = "https://api.github.com/users/";
       const fullURI = uri + selectedUser;
-
-      const res = await fetch(fullURI);
-      const data = await res.json();
-
-      setSelectedUserData({ name: data.name, bio: data.bio });
-    };
-
-    const fetchRepos = async () => {
-      const uri = `https://api.github.com/users/${selectedUser}/repos`;
-
       try {
-        const res = await fetch(uri);
+        const res = await fetch(fullURI);
         const data = await res.json();
-        console.log(data);
-        setUserReps(data);
-      } catch {
-        console.log("Error Occured while fetching reps");
+
+        if (data.message) {
+          throw data.message;
+        }
+
+        setSelectedUserData({ name: data.name, bio: data.bio });
+      } catch (error) {
+        console.log("Error Occured: ", error);
+        setApiError(error);
       }
     };
 
+    const fetchRepos = async () => {
+      try {
+        const uri = `https://api.github.com/users/${selectedUser}/repos`;
+        const res = await fetch(uri);
+        const data = await res.json();
+        console.log({ data });
+        if (data.message) {
+          throw data.message;
+        }
+        setUserRepo(data);
+      } catch (error) {
+        console.log("Error Occured while fetching reps", error);
+        setApiError(error);
+      }
+    };
+    setApiError("");
     fetchUserData();
     fetchRepos();
   }, [selectedUser]);
@@ -124,9 +139,9 @@ const Repos = () => {
           <h1>{selectedUserData.name}</h1>
           <p>{selectedUserData.bio}</p>
 
-          {userReps && (
+          {userRepo && (
             <div className="repo">
-              {userReps?.map((rep) => {
+              {userRepo?.map((rep) => {
                 return (
                   <div>
                     <p>{rep.name}</p>
@@ -138,6 +153,12 @@ const Repos = () => {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {apiError && (
+        <div>
+          <p>Error Occured: {apiError}</p>
         </div>
       )}
     </div>
